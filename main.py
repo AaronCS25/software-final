@@ -88,9 +88,8 @@ def get_historial(minumero: str):
             
             historial = []
             saldo_actual = cuenta.saldo
-            historial.append(f'Saldo de {cuenta.dueno}: {saldo_actual}')
-            historial.append(f'Operaciones de {cuenta.dueno}:')
 
+            operaciones = []
             for operacion in cuenta.operaciones:
                 if operacion.numero_origen == minumero:
                     tipo_operacion = 'Pago realizado'
@@ -102,7 +101,8 @@ def get_historial(minumero: str):
                     monto_operacion = operacion.valor
                 
                 fecha_operacion = operacion.fecha.strftime("%d/%m/%Y %H:%M:%S")
-                historial.append(f'{tipo_operacion} {detalle_operacion} por {monto_operacion} el {fecha_operacion}')
+                operaciones.append(f'{tipo_operacion} {detalle_operacion} por {monto_operacion} el {fecha_operacion}')
+            historial.append({f'Saldo de {cuenta.dueno}': saldo_actual, f'Operaciones de {cuenta.dueno}': operaciones})
             return historial
         
     return {"mensaje": "No se encontró la cuenta"}

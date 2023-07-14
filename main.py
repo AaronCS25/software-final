@@ -46,8 +46,8 @@ def obtener_contactos(minumero: str):
                 contacto_dueno = buscar_dueno(contacto_numero)
                 contactos[contacto_numero] = contacto_dueno
             return contactos
-        else:
-            return {"mensaje": "No se encontró la cuenta"}
+
+    return {"mensaje": "No se encontró la cuenta"}
 
 @app.post("/billetera/pagar")
 def pagar(minumero: str, numerodestino: str, valor: int):
@@ -75,5 +75,34 @@ def pagar(minumero: str, numerodestino: str, valor: int):
     fecha = datetime.now()
     operacion = Operacion(minumero, numerodestino, fecha, valor)
     cuenta_origen.operaciones.append(operacion)
+    cuenta_destino.operaciones.append(operacion)
 
-    return {"mensaje": "Pago exitoso", "fecha": f"Realizado en {fecha}"}    
+    return {"mensaje": "Pago exitoso", "fecha": f"Realizado en {fecha}"}
+
+@app.get("/billetera/historial")
+def get_historial(minumero: str):
+    for cuenta in BD:
+        if cuenta.numero == minumero:
+            if cuenta.operaciones == []:
+                return {"mensaje": "No hay operaciones"}
+            
+            historial = []
+            saldo_actual = cuenta.saldo
+            historial.append(f'Saldo de {cuenta.dueno}: {saldo_actual}')
+            historial.append(f'Operaciones de {cuenta.dueno}:')
+
+            for operacion in cuenta.operaciones:
+                if operacion.numero_origen == minumero:
+                    tipo_operacion = 'Pago realizado'
+                    detalle_operacion = f'a {buscar_dueno(operacion.numero_destino)}'
+                    monto_operacion = operacion.valor
+                else:
+                    tipo_operacion = 'Pago recibido'
+                    detalle_operacion = f'de {buscar_dueno(operacion.numero_origen)}'
+                    monto_operacion = operacion.valor
+                
+                fecha_operacion = operacion.fecha.strftime("%d/%m/%Y %H:%M:%S")
+                historial.append(f'{tipo_operacion} {detalle_operacion} por {monto_operacion} el {fecha_operacion}')
+            return historial
+        
+    return {"mensaje": "No se encontró la cuenta"}
